@@ -1,0 +1,37 @@
+---
+title: "index/qmd"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+```{r}
+# Current location of your file
+old_path <- "fb9b57af-d361-4f34-a515-b707ea2a7ce9_Series - Metadata.csv"  # adjust extension
+
+# Target location inside the 'data' folder
+new_path <- "data/fb9b57af-d361-4f34-a515-b707ea2a7ce9_Series - Metadata.csv"
+
+# Move the file
+file.rename(old_path, new_path)
+
+# Check it’s there
+list.files("data")
+
+
+
+
+
+```
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
