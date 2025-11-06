@@ -1,0 +1,187 @@
+---
+title: "Pakistan's Growth Over Time"
+author: "Sanaa Kashif"
+format: html
+code-fold: true
+embed-resources: true 
+execute:
+  warning: false
+  message: false
+---
+
+## Quarto
+
+## Running Code
+
+This assignment uses data from : <https://databank.worldbank.org/reports.aspx?source=2&country=PAK#>. Its a world Bank data set on Pakistan. The assignment will look at population growth and population poverty. There will be four graphs made which look at population growth over time, rate of population growth, poverty rates and GDP growth. The very first section of code will load the data and give me a brief understanding of the data structure. This block includes code to hide the output for a neater effect.
+
+```{r, output = FALSE}
+
+#hiding code for the set up codes for a neater effect 
+options(repos = c(CRAN = "https://cloud.r-project.org"))
+
+# Load libraries
+# Install required packages 
+install.packages("tidyverse")
+install.packages("scales")
+
+# Then load 
+library(tidyverse)
+library(scales)
+
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+
+# Set working directory
+setwd("~/Desktop/assignment-04")
+
+# Read the data
+data <- read_csv("data/dataset.csv")
+
+# View the structure
+glimpse(data)
+
+# View first few rows
+head(data)
+
+# View column names
+names(data)
+
+# Get summary statistics
+summary(data)
+```
+
+Pakistan, as one of the world's most populous countries, faces critical policy challenges related to population growth, poverty reduction, and economic development. Understanding these trends is essential for effective policy planning and resource allocation.To do this, I firstly started out by shaping the code 'long' for easier analysis. This code was also hidden for a neater affect.
+
+```{r, output = FALSE}
+
+data <- read_csv("data/dataset.csv")
+unique(data$`Series Name`)
+data_long <- data |>
+  pivot_longer(
+    cols = starts_with("19") | starts_with("20"),
+    names_to = "year",
+    values_to = "value"
+  ) |>
+  # Extract just the year number
+  mutate(
+    year = as.numeric(str_extract(year, "\\d{4}")),
+    value = as.numeric(value)
+  ) |>
+  # Remove missing values
+  filter(!is.na(value))
+```
+
+The following code will create a graph which will look at population growth in Pakistan over time. Pakistan's total population has grown dramatically since 1990, with significant policy implications for infrastructure, education, and healthcare planning. The variable used here 'SP.POP.TOTL' is the total population per year.
+
+```{r}
+# Visualization 1: Pakistan's Population Growth Over Time
+
+# Filter for population data
+population_data <- data_long |>
+  filter(`Series Code` == "SP.POP.TOTL")
+
+# Create the plot
+ggplot(population_data, aes(x = year, y = value)) +
+  geom_line(color = "darkblue") +
+  geom_point(color = "red") +
+  scale_y_continuous(
+  ) +
+  labs(
+    title = "Pakistan's Population Has Doubled Since 1990",
+    subtitle = "Total population increased from 116 million to 251 million (1990-2024)",
+    x = "Year",
+    y = "Total Population",
+    caption = "Source: World Bank Open Data"
+  )
+
+```
+
+This visualization reveals that Pakistan has experienced dramatic demographic growth over the past three decades, with its population doubling from approximately 116 million in 1990 to 251 million in 2024. The smooth, upward trending line indicates consistent and steady growth with no significant disruptions, suggesting an average annual growth rate of approximately 2 to 2.5%. This exponential growth pattern, typical of countries with high birth rates, has profound implications for Pakistan's future. The nation faces mounting pressure to provide adequate jobs, housing, healthcare, and education for its expanding population, while also managing increased demand on critical resources like water, food, and energy. The red data points along the line represent annual observations, confirming the reliability of this trend. If this trajectory continues, Pakistan could surpass 300 million people within the next 10-15 years, making strategic population management and infrastructure development increasingly urgent priorities for policymakers.
+
+Understanding the rate of population growth helps policymakers anticipate future demographic pressures and plan accordingly. As we can see from the graph, Pakistans population growth rate has had a consistent decline since 1990. There has been a slight uptick in and around 2020 but the growth rate has never reached 1990 growth levels. So while the overall population has increased ( table one), the rate of growth is decreasing. The variable used here 'SP.POP.GROW' stands for population growth ( % of total population).
+
+```{r}
+
+# Visualization 2: Annual Population Growth Rate Trends
+
+# Filter for population growth rate data
+growth_data <- data_long |>
+  filter(`Series Code` == "SP.POP.GROW")
+
+# Create the plot
+ggplot(growth_data, aes(x = year, y = value, fill = "Growth Rate")) +
+  geom_area() +
+  geom_line(aes(color = "Trend")) +
+  scale_fill_manual(values = "lightblue") +
+  scale_color_manual(values = "darkblue") +
+  labs(
+    title = "Pakistan's Population Growth Rate Shows Gradual Decline",
+    subtitle = "Annual growth rate decreased from 3.3% to 1.5% (1990-2024)",
+    x = "Year",
+    y = "Annual Population Growth Rate (%)",
+    fill = "",
+    color = "",
+    caption = "Source: World Bank Open Data"
+  )
+```
+
+This visualization demonstrates a positive demographic transition in Pakistan, where the annual population growth rate has declined significantly from 3.3% in 1990 to approximately 1.5% in 2024. The shaded area chart with the overlaid trend line clearly shows a consistent downward trajectory over the 34 year period, indicating that while Pakistan's population continues to grow (as shown in the previous graph), the rate of that growth is slowing. This decline suggests improvements in family planning, increased access to education (particularly for women), urbanization, and changing socioeconomic conditions. The minor fluctuation visible around 2020 may reflect data collection challenges during the COVID-19 pandemic. Despite this encouraging trend toward stabilization, the current 1.5% growth rate remains relatively high compared to global averages, meaning Pakistan's population will continue expanding for decades to come. This gradual deceleration is crucial for the country's ability to manage resources, infrastructure, and public services more sustainably, though significant demographic momentum remains.
+
+From these two graphs we can understand two things :
+
+1\) Pakistans overall population is growing
+
+2\) It is growing at a slower than than in 1990
+
+Knowing now about the size of the population, I was interested to see their wealth levels. Poverty reduction is a central policy objective, and tracking poverty rates helps evaluate the effectiveness of economic and social policies. Here, extreme poverty is classified as 'POVERTY HEADOCUNT RATIO at 3 dollars a day' at consumtion of 3 usd a day. National poverty levels are defined as ' poverty headcount ration at national poverty lines".
+
+```{r}
+
+# Visualization 3: Poverty Trends in Pakistan
+# Filter for multiple poverty measures
+poverty_data <- data_long |>
+filter(`Series Code` %in% c("SI.POV.NAHC", "SI.POV.DDAY")) |>
+mutate(measure = ifelse(`Series Code` == "SI.POV.NAHC", 
+                          "National Poverty", 
+                          "Extreme Poverty (<$3.00/day)"))
+# Create the plot
+ggplot(poverty_data, aes(x = factor(year), y = value, fill = measure)) +
+geom_col(position = "dodge", width = 0.7) +
+  labs(
+    title = "Pakistan's Poverty Rates Show Significant Reduction",
+    subtitle = "Both national and extreme poverty have declined substantially",
+    x = "Year",
+    y = "Poverty Rate (%)",
+    fill = "Poverty Measure",
+    caption = "Source: World Bank Open Data"
+  ) +
+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+This visualization reveals substantial progress in Pakistan's fight against poverty over nearly two decades. The graph compares two poverty measures across three time periods (approximately 2001, 2015, and 2018), showing dramatic improvements on both fronts. Extreme poverty (people living on less than \$3.00 per day, shown in coral/red) plummeted from approximately 80% in 2001 to around 17% by 2018, a remarkable reduction of over 60 percentage points. Similarly, the national poverty rate (shown in teal/turquoise) decreased from about 24% in 2015 to roughly 21% in 2018. The side by side bar arrangement clearly illustrates that while extreme poverty affects fewer people than the national poverty threshold in recent years, both measures have followed a downward trend. This poverty reduction coincides with the declining population growth rate shown in the previous graph, suggesting that slower population growth, combined with economic development and social programs, has enabled more Pakistanis to escape poverty. However, with nearly one fifth of the population still living in extreme poverty as of 2018, significant challenges remain in ensuring economic security for all citizens.
+
+Knowing now the levels of poverty, I was curious to know if the distribution of GPD line is the inverse of the poverty graph ( ie more distibution as poverty goes down). This graph looks at GDP growth across the same years that were examined for poverty rates.
+
+```{r}
+
+# Visualization 4: GDP Comparison Across Key Years
+
+# Filter for GDP data in specific years
+gdp_data <- data_long |>
+  filter(`Series Code` == "NY.GDP.MKTP.CD") |>
+  filter(year %in% c(1990, 2015, 2018))
+
+# Create the plot
+ggplot(gdp_data, aes(x = factor(year), y = value)) +
+  geom_col(fill = "darkgreen") +
+  labs(
+    title = "Pakistan's GDP Growth Across Key Years",
+    subtitle = "GDP increased from $40B to $313B between 1990 and 2018",
+    x = "Year",
+    y = "GDP (Current US Dollars)",
+    caption = "Source: World Bank Open Data"
+  )
+```
+
+This visualization demonstrates impressive economic expansion in Pakistan over nearly three decades, with GDP growing from approximately \$40 billion in 1990 to \$313 billion in 2018, nearly an eightfold increase. The bar chart shows dramatic growth between 1990 and 2015, when GDP surged to around \$300 billion, followed by continued but more modest growth to \$313 billion by 2018. This substantial economic expansion helps explain the poverty reduction trends shown in the previous graph, as a larger economy generally creates more employment opportunities and resources for social programs. However, when considered alongside the population data, this economic growth takes on additional context: while GDP increased roughly 8 times, the population more than doubled during the same period. This means that although the overall economy grew significantly, the per capita (per person) gains were more modest, GDP per person grew from roughly \$340 in 1990 to about \$1,470 in 2018. The stabilization visible between 2015 and 2018 suggests Pakistan's economy may be entering a phase of slower but potentially more sustainable growth.
